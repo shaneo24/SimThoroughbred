@@ -179,7 +179,7 @@ class GameState {
       return { ok: false, msg: `${horse.name} has not qualified for the Kentucky Derby. Finish top 3 in the San Felipe Stakes or Santa Anita Derby.` };
     if (horse.injured)
       return { ok: false, msg: `${horse.name} is injured and cannot race.` };
-    if (this.money < race.entryFee)
+    if (this.money < race.entryFee && race.entryFee > 0)
       return { ok: false, msg: 'Insufficient funds for entry fee.' };
     // Prevent entering multiple special events simultaneously
     const allSpecial = [...this.bcRaces, ...this.tcRaces];
