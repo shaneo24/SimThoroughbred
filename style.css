@@ -424,6 +424,7 @@ button { cursor: pointer; font-family: var(--font); }
   z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px;
 }
 .modal.hidden   { display: none; }
+.d-none         { display: none !important; }
 body.modal-open { overflow: hidden; }
 
 .modal-content {
@@ -635,6 +636,37 @@ details summary { cursor: pointer; color: var(--text-2); font-size: 11px; margin
   padding: 1px 5px;
   border-radius: 3px;
   font-size: 12px;
+}
+.guide-tabs {
+  display: flex;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2px;
+  background: var(--surface);
+}
+.guide-tab {
+  background: none;
+  border: none;
+  color: var(--text-2);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 14px;
+  border-radius: calc(var(--radius) - 2px);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.guide-tab:hover  { color: var(--text); }
+.guide-tab.active { background: var(--gold); color: #fff; }
+.light-mode .guide-tab.active { color: #fff; }
+.changelog-date {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-2);
+  margin-left: 8px;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 /* ─── Breeding Farm Screen ────────────────────────────────────────────────── */

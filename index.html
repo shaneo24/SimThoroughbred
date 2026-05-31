@@ -260,10 +260,16 @@
   <div class="modal-content guide-modal-content">
     <div class="guide-header">
       <h2>Help / Guide</h2>
-      <button class="btn btn-secondary btn-sm" id="btn-close-help">Close</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="guide-tabs">
+          <button class="guide-tab active" data-guide-tab="guide">Guide</button>
+          <button class="guide-tab" data-guide-tab="changelog">Changelog</button>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="btn-close-help">Close</button>
+      </div>
     </div>
 
-    <div class="guide-body">
+    <div class="guide-body" id="guide-tab-guide">
 
       <section class="guide-section">
         <h3>Overview</h3>
@@ -389,7 +395,18 @@
         <p>⚠️ Clearing your browser data will erase the auto-save. Use manual saves for long-term backups.</p>
       </section>
 
-    </div><!-- /guide-body -->
+    </div><!-- /guide-tab-guide -->
+
+    <div class="guide-body d-none" id="guide-tab-changelog">
+
+      <section class="guide-section">
+        <h3>v0.1 — Public Beta <span class="changelog-date">May 30, 2026</span></h3>
+        <ul>
+          <li>Initial public release</li>
+        </ul>
+      </section>
+
+    </div><!-- /guide-tab-changelog -->
   </div>
 </div>
 
