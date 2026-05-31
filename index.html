@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SimThoroughbred</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <header id="game-header">
+    <div class="header-left">
+      <span class="game-title">SimThoroughbred</span>
+      <span class="subtitle">Horse Racing Manager</span>
+    </div>
+    <div class="header-center">
+      <nav class="main-nav">
+        <button class="nav-btn active" data-screen="dashboard">Dashboard</button>
+        <button class="nav-btn" data-screen="stable">Stable</button>
+        <button class="nav-btn" data-screen="auction">Auction</button>
+        <button class="nav-btn" data-screen="condition-book">Condition Book</button>
+        <button class="nav-btn" data-screen="stakes-book">Stakes Book</button>
+        <button class="nav-btn" data-screen="breeding" style="display:none">Breeding</button>
+      </nav>
+    </div>
+    <div class="header-right">
+      <div class="game-info">
+        <div class="info-item">
+          <span class="info-label">Funds</span>
+          <span class="info-value money" id="header-money">$100,000</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Date</span>
+          <span class="info-value" id="header-date">—</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Horses</span>
+          <span class="info-value" id="header-horses">0</span>
+        </div>
+      </div>
+      <button id="theme-toggle" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle light / dark mode">
+        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+        <span id="theme-icon">🌙</span>
+      </button>
+      <div class="save-controls">
+        <button class="btn btn-secondary btn-sm" id="btn-new-game">New Game</button>
+        <button class="btn btn-secondary btn-sm" id="btn-help">Help / Guide</button>
+        <button class="btn btn-secondary btn-sm" id="btn-save">Save</button>
+        <button class="btn btn-secondary btn-sm" id="btn-load">Load</button>
+        <input type="file" id="load-file-input" accept=".json" style="display:none">
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Screens ─────────────────────────────────────────────────────────── -->
+  <main id="main-content">
+
+    <!-- Dashboard -->
+    <section id="screen-dashboard" class="screen active">
+      <div class="screen-inner">
+        <div id="stable-name-banner" class="stable-name-banner" style="display:none"></div>
+        <div class="dashboard-grid">
+          <div class="panel">
+            <h2>Your Stable</h2>
+            <div id="stable-summary-content">
+              <p class="muted">No horses yet. Visit the Auction to buy your first horse.</p>
+            </div>
+          </div>
+          <div class="panel">
+            <h2>Upcoming Races</h2>
+            <div id="upcoming-content">
+              <p class="muted">No upcoming entries. Check the Condition Book.</p>
+            </div>
+          </div>
+          <div class="panel">
+            <h2>News &amp; Notifications</h2>
+            <div id="news-content">
+              <p class="muted">No news yet.</p>
+            </div>
+          </div>
+          <div class="panel">
+            <h2>Southern California Circuit</h2>
+            <p style="color:var(--text-2);font-size:13px;line-height:1.8">
+              <strong style="color:var(--text)">Santa Anita Park</strong><br>
+              Dirt: 5.5f–9f &nbsp;·&nbsp; Turf: 6f-6.5f · 8f–10f<br>
+              Meets: Winter/Spring · Fall<br><br>
+              <strong style="color:var(--text)">Del Mar</strong><br>
+              Dirt: 5.5f–9f &nbsp;·&nbsp; Turf: 5f · 8f–9f<br>
+              Meets: Summer · Fall<br><br>
+              Condition books issue every 2&nbsp;weeks.<br>
+              Racing: SoCal runs Fridays through Sundays, Thursdays are added in June.
+            </p>
+          </div>
+        </div>
+        <div class="dashboard-actions">
+          <button class="btn btn-primary btn-large" id="btn-advance-week">Advance One Week</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stable -->
+    <section id="screen-stable" class="screen">
+      <div class="screen-inner">
+        <h2 class="screen-title">Your Stable</h2>
+        <div id="stable-content">
+          <p class="muted">No horses in your stable.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Auction -->
+    <section id="screen-auction" class="screen">
+      <div class="screen-inner">
+        <h2 class="screen-title">Horse Auction</h2>
+        <p class="section-desc">Speed shown as tier (Low / Good / Elite). Actual performance depends on race difficulty, distance fit, and surface preference — hidden until revealed through racing. Auction refreshes weekly.</p>
+        <div id="auction-content" class="auction-grid"></div>
+      </div>
+    </section>
+
+    <!-- Stakes Book -->
+    <section id="screen-stakes-book" class="screen">
+      <div class="screen-inner">
+        <div class="section-header">
+          <h2 class="screen-title">Stakes Book</h2>
+          <p style="color:var(--text-2);font-size:13px;margin:0">Year-round stakes schedule</p>
+        </div>
+        <div class="circuit-tabs">
+          <button class="circuit-tab active" data-tab="socal" data-target="stakes-book">SoCal Circuit</button>
+          <button class="circuit-tab" data-tab="bc" data-target="stakes-book">Breeders' Cup</button>
+          <button class="circuit-tab" data-tab="tc" data-target="stakes-book">Triple Crown</button>
+        </div>
+        <div class="stakes-book-filters">
+          <select id="stakes-filter-grade" class="filter-select">
+            <option value="">All Grades</option>
+            <option value="G1">G1</option>
+            <option value="G2">G2</option>
+            <option value="G3">G3</option>
+            <option value="L">Listed</option>
+            <option value="ungraded">Ungraded</option>
+          </select>
+          <select id="stakes-filter-track" class="filter-select">
+            <option value="">All Tracks</option>
+            <option value="santa_anita">Santa Anita Park</option>
+            <option value="del_mar">Del Mar</option>
+          </select>
+          <select id="stakes-filter-surface" class="filter-select">
+            <option value="">All Surfaces</option>
+            <option value="dirt">Dirt</option>
+            <option value="turf">Turf</option>
+          </select>
+          <select id="stakes-filter-div" class="filter-select">
+            <option value="">All Divisions</option>
+            <option value="2yo">2yo</option>
+            <option value="3yo">3yo</option>
+            <option value="3yo+">3yo+</option>
+            <option value="4yo+">4yo+</option>
+          </select>
+        </div>
+        <div id="stakes-book-content"></div>
+      </div>
+    </section>
+
+    <!-- Condition Book -->
+    <section id="screen-condition-book" class="screen">
+      <div class="screen-inner">
+        <div class="section-header">
+          <h2 class="screen-title">Condition Book</h2>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <p id="condition-book-dates" style="color:var(--text-2);font-size:13px;margin:0"></p>
+            <button class="btn btn-secondary btn-sm" id="btn-prev-condition-book" style="display:none">← Current Book</button>
+            <button class="btn btn-secondary btn-sm" id="btn-next-condition-book">Preview Next →</button>
+          </div>
+        </div>
+        <div class="circuit-tabs">
+          <button class="circuit-tab active" data-tab="socal" data-target="condition-book">SoCal Circuit</button>
+          <button class="circuit-tab" data-tab="bc" data-target="condition-book">Breeders' Cup</button>
+          <button class="circuit-tab" data-tab="tc" data-target="condition-book">Triple Crown</button>
+        </div>
+        <div id="condition-book-content"></div>
+      </div>
+    </section>
+
+    <!-- Breeding Farm -->
+    <section id="screen-breeding" class="screen">
+      <div class="screen-inner">
+        <h2 class="screen-title">Breeding Farm</h2>
+        <div id="breeding-content"></div>
+      </div>
+    </section>
+
+  </main><!-- /main-content -->
+
+</div><!-- /app -->
+
+<!-- ── Flash Message ───────────────────────────────────────────────────────── -->
+<div id="flash-msg"></div>
+
+<!-- ── New Game Modal ────────────────────────────────────────────────────── -->
+<div id="new-game-modal" class="modal hidden">
+  <div class="modal-content">
+    <h2>New Game</h2>
+    <p style="color:var(--text-2);font-size:13px;margin-bottom:20px">Give your stable a name to get started.</p>
+    <div style="margin-bottom:20px">
+      <label for="stable-name-input" style="display:block;font-size:12px;color:var(--text-2);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em">Stable Name</label>
+      <input type="text" id="stable-name-input" class="text-input" placeholder="e.g. Sunset Stables" maxlength="40" autocomplete="off">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="btn-cancel-new-game">Cancel</button>
+      <button class="btn btn-primary" id="btn-confirm-new-game">Start Game</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Race Modal ─────────────────────────────────────────────────────────── -->
+<div id="race-modal" class="modal hidden">
+  <div class="modal-content race-modal-content">
+    <div class="race-header">
+      <div id="race-title"></div>
+      <div id="race-info"></div>
+    </div>
+    <div id="race-canvas-container">
+      <canvas id="race-canvas" width="920" height="200"></canvas>
+    </div>
+    <div id="race-status"></div>
+    <div id="race-field"></div>
+    <div id="race-controls">
+      <button class="btn btn-primary btn-large" id="btn-start-race">Start Race</button>
+      <button class="btn btn-secondary btn-sm hidden" id="btn-close-race">Close Results</button>
+    </div>
+    <div id="race-results" class="hidden"></div>
+  </div>
+</div>
+
+<!-- ── Horse Detail Modal ─────────────────────────────────────────────────── -->
+<div id="horse-modal" class="modal hidden">
+  <div class="modal-content">
+    <h2 id="horse-modal-name"></h2>
+    <div id="horse-modal-content"></div>
+    <button class="btn btn-secondary modal-close" id="btn-close-horse-modal">Close</button>
+  </div>
+</div>
+
+<!-- ── Enter Race Modal ───────────────────────────────────────────────────── -->
+<div id="enter-race-modal" class="modal hidden">
+  <div class="modal-content">
+    <h2>Enter Race</h2>
+    <div id="enter-race-content"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="btn-cancel-entry">Cancel</button>
+      <button class="btn btn-primary" id="btn-confirm-entry">Confirm Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Help / Guide Modal ─────────────────────────────────────────────────── -->
+<div id="help-modal" class="modal hidden">
+  <div class="modal-content guide-modal-content">
+    <div class="guide-header">
+      <h2>Help / Guide</h2>
+      <button class="btn btn-secondary btn-sm" id="btn-close-help">Close</button>
+    </div>
+
+    <div class="guide-body">
+
+      <section class="guide-section">
+        <h3>Overview</h3>
+        <p>SimThoroughbred is a horse racing stable management game set in Southern California. You start with <strong>$100,000</strong> and build a stable by buying horses at auction, entering them in races, and collecting winnings, with the goal of breeding a stable of champions.</p>
+      </section>
+
+      <section class="guide-section">
+        <h3>The Calendar</h3>
+        <p>The game runs in <strong>weeks</strong>. Advance one week at a time using the <em>Advance One Week</em> button on the Dashboard. Each week costs <strong>$1,000–$1,500</strong> per horse in training fees and <strong>$300–$450</strong> per horse in vet fees.</p>
+        <p>The racing circuit follows a real-world Southern California schedule, switching between Santa Anita Park and Del Mar (more racing circuits will be added as the game advances through Beta).</p>
+        <p>Horses age on <strong>January 1</strong> (week 1) each year, matching the universal thoroughbred birthday rule.</p>
+      </section>
+
+      <section class="guide-section">
+        <h3>Buying Horses (Auction)</h3>
+        <p>Eight horses are available at auction each week. You can see each horse's <strong>potential rating</strong> (Low / Fair / Elite) — but this rating has a <strong>chance of being wrong</strong>. Speed is intentionally hidden; you'll learn it through racing.</p>
+        <p>2-year-olds first appear at auction around <strong>April 1 (week 13)</strong>. They're cheaper but unproven. 3-year-olds are partially developed and ready to race sooner.</p>
+        <p>After purchasing a horse you're given the option to rename them.</p>
+      </section>
+
+      <section class="guide-section">
+        <h3>Horse Stats</h3>
+        <ul>
+          <li><strong>Speed (hidden):</strong> Raw top speed. The primary factor in race results. Shown as a tier (Low / Fair / Elite) on cards.</li>
+          <li><strong>Stamina (hidden):</strong> Determines ideal race distance. Running too far from ideal will worsen results.</li>
+          <li><strong>Potential (hidden):</strong> How much a horse can improve over time. Higher potential means more room to develop.</li>
+          <li><strong>Confidence:</strong> Horses with high confidence will perform better after winning.</li>
+          <li><strong>Consistency:</strong> Horses with higher consistency will consistently run to their top ability.</li>
+          <li><strong>Fatigue:</strong> Increases after racing. Recovers 10–15 pts per week. A horse with fatigue ≥ 70 cannot be entered. Any fatigue above 20 negatively impacts a horse's performance in a race.</li>
+          <li><strong>Surface preference (hidden):</strong> Dirt, Turf, or Both. Running on the wrong surface worsens a horse's performance. Revealed through jockey notes after racing.</li>
+        </ul>
+      </section>
+
+      <section class="guide-section">
+        <h3>Horse Development</h3>
+        <p>Horses under age 5 have an <strong>11% chance per week</strong> of gaining +1 speed, up to their potential cap. 2-year-olds don't begin developing until <strong>May (week 18)</strong>.</p>
+        <p>Horses aged 6+ may begin to slowly <strong>decline</strong> in speed over time.</p>
+      </section>
+
+      <section class="guide-section">
+        <h3>Condition Book</h3>
+        <p>The Condition Book lists all races for the current <strong>2-week period</strong> at the active track. Each race has:</p>
+        <ul>
+          <li><strong>Race type</strong> — determines eligibility (see Race Types below)</li>
+          <li><strong>Distance &amp; Surface</strong> — match to your horse's stamina and surface preference</li>
+          <li><strong>Division</strong> — age and sex restrictions</li>
+          <li><strong>Purse</strong> — prize money split among the top 5 finishers</li>
+          <li><strong>Entry fee</strong> — paid when you enter</li>
+          <li><strong>Claiming price</strong> — if present, your horse may be purchased by another owner after the race</li>
+        </ul>
+        <p>Each horse can only be entered in <strong>one race per condition book period</strong> and must wait at least <strong>2 weeks</strong> between races.</p>
+        <p>Use <em>Preview Next →</em> to see the upcoming book before it becomes active.</p>
+      </section>
+
+      <section class="guide-section">
+        <h3>Race Types &amp; Eligibility</h3>
+        <ul>
+          <li><strong>Maiden:</strong> For horses that have never won a race. You should <strong>start here.</strong></li>
+          <li><strong>Maiden Claiming:</strong> Maiden race where your horse may be claimed at the listed price. You should run here if your horse <strong>cannot win a maiden race.</strong></li>
+          <li><strong>Allowance N1X:</strong> For horses that have never won a non-maiden, non-claiming race. <strong>After you win a maiden race, you should run here.</strong></li>
+          <li><strong>Allowance N2X:</strong> For horses with at most one allowance/stakes win. Has an optional $100k claiming tag.</li>
+          <li><strong>Claiming:</strong> Open to all. Your horse may be purchased after the race for the listed claiming price. Only run in these races after you've tried your horse in allowance races. Then gradually move them into easier races.</li>
+          <li><strong>Claiming N2L:</strong> Claiming race restricted to horses with 1 win or fewer. <strong>Run here after you win a maiden claiming race.</strong></li>
+          <li><strong>Stakes:</strong> Prestigious fixed annual events. No claiming. Open to all eligible ages/sexes.</li>
+        </ul>
+        <p><strong>Payout split:</strong> 54% / 18% / 9% / 6.3% / 2.7% for 1st through 5th place.</p>
+      </section>
+
+      <section class="guide-section">
+        <h3>Race Simulation</h3>
+        <p>Your horse's performance is determined by:</p>
+        <ol>
+          <li><strong>Effective speed</strong> — base speed adjusted for fatigue, win streak, consistency, distance fit, and surface preference</li>
+          <li><strong>Race difficulty</strong> — set by the track and race type</li>
+          <li><strong>Randomness</strong> — there's always a chance of an upset in either direction</li>
+        </ol>
+      </section>
+
+      <section class="guide-section">
+        <h3>Injuries</h3>
+        <p>Every race carries <strong>injury risk</strong>. Injured horses are sidelined for <strong>4–12 weeks</strong> and cannot race. They still accrue weekly training and vet fees.</p>
+      </section>
+
+      <section class="guide-section">
+        <h3>Jockey Notes</h3>
+        <p>After each race your jockey may leave an observation about <strong>surface fit</strong> or <strong>distance fit</strong>. These are the primary way to learn a horse's hidden surface preference and ideal trip. Up to 10 notes are stored per horse, viewable in the horse's Details panel.</p>
+      </section>
+
+      <section class="guide-section">
+        <h3>Stakes Book</h3>
+        <p>The Stakes Book shows the full year-round schedule of graded and listed stakes races for the SoCal circuit. Races appear in the Condition Book automatically when their week arrives — use the Stakes Book to plan ahead. You can filter by grade, track, surface, and division.</p>
+      </section>
+
+      <section class="guide-section">
+        <h3>Breeders' Cup</h3>
+        <p>The Breeders' Cup runs every year at <strong>Keeneland on November 1–2 (week 44)</strong>. All 14 races are Grade 1 with purses from $1M to $7M. Entry opens <strong>2 weeks before the event</strong>. Navigate to the <em>Breeders' Cup</em> tab in the Condition Book or Stakes Book to view and enter races.</p>
+      </section>
+
+      <section class="guide-section">
+        <h3>Triple Crown</h3>
+        <p>The three American classics run each spring:</p>
+        <ul>
+          <li><strong>Kentucky Derby</strong> — Week 18, May 4, Churchill Downs, 10f dirt, $5M, 20-horse field. <em>Qualification required</em>: finish top 3 in the San Felipe Stakes or Santa Anita Derby.</li>
+          <li><strong>Preakness Stakes</strong> — Week 20, May 18, Pimlico, 9.5f dirt, $2M.</li>
+          <li><strong>Belmont Stakes</strong> — Week 23, Jun 8, Belmont Park, 12f dirt, $2M.</li>
+        </ul>
+        <p>All are restricted to 3-year-olds. Entry opens 2 weeks before each race.</p>
+      </section>
+
+      <section class="guide-section">
+        <h3>Breeding Farm</h3>
+        <p>Any filly or mare in your stable can be <strong>retired to the breeding farm</strong> using the button on her stable card. Retirement is permanent.</p>
+        <p><strong>Breeding window:</strong> mid-January through mid-June (weeks 3–24). Select a stallion and pay the stud fee to breed. There is a chance the mare does not conceive; if she fails to conceive the stud fee is refunded. If conception is successful, the foal is born <strong>51 weeks later</strong>. If the birth fails, the stud fee is also refunded.</p>
+        <p><strong>Foal stats</strong> are derived from the parents: speed is based on the mare's speed and the stallion's speed. Surface preference has a chance of matching the sire. Other stats are randomly generated.</p>
+        <p>Foals appear under their dam's card on the Breeding tab. They turn <strong>age 1 on January 1</strong>, and <strong>age 2 the following January 1</strong> — at which point you're prompted to name them and they enter your racing stable.</p>
+        <p>Mares are eventually <strong>pensioned from breeding</strong> due to health, between ages 22 and 30.</p>
+        <p><strong>Farm costs:</strong> $300–400/week per active mare, $200–300/week per foal.</p>
+      </section>
+
+      <section class="guide-section">
+        <h3>Saving &amp; Loading</h3>
+        <p>The game <strong>auto-saves</strong> to your browser's local storage after every action. Use <em>Save</em> to download a <code>.json</code> file backup, and <em>Load</em> to restore from a file. Save files are cryptographically signed — modified files will be rejected.</p>
+        <p>⚠️ Clearing your browser data will erase the auto-save. Use manual saves for long-term backups.</p>
+      </section>
+
+    </div><!-- /guide-body -->
+  </div>
+</div>
+
+<!-- ── Breed Stallion Modal ───────────────────────────────────────────────── -->
+<div id="breed-modal" class="modal hidden">
+  <div class="modal-content">
+    <h2>Select Stallion</h2>
+    <p style="color:var(--text-2);font-size:13px;margin-bottom:4px">
+      Breeding <strong id="breed-modal-mare-name"></strong>
+    </p>
+    <p style="color:var(--text-2);font-size:12px;margin-bottom:16px">
+      Stud fee is charged at booking. Foal born ~51 weeks later.
+    </p>
+    <div id="breed-stallion-list" class="horse-select-list breed-stallion-list"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="btn-cancel-breed">Cancel</button>
+      <button class="btn btn-primary" id="btn-confirm-breed">Confirm Breeding</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Scripts ─────────────────────────────────────────────────────────────── -->
+<script src="js/data.js"></script>
+<script src="js/horse.js"></script>
+<script src="js/game.js"></script>
+<script src="js/race.js"></script>
+<script src="js/canvas.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+
+</body>
+</html>

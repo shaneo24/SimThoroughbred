@@ -1,0 +1,797 @@
+/* ─── Reset & Base ────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:            #0a0a0a;
+  --surface:       #111111;
+  --panel:         #1a1a1a;
+  --panel-2:       #222222;
+  --border:        #2e2e2e;
+  --gold:          #d4a843;
+  --gold-lt:       #e8c56a;
+  --text:          #f0f0f0;
+  --text-2:        #888888;
+  --green:         #4caf50;
+  --red:           #e05252;
+  --orange:        #ff9800;
+  --dirt:          #b07840;
+  --turf:          #3a9450;
+  --radius:        6px;
+  --shadow:        0 4px 20px rgba(0,0,0,0.7);
+  --font:          Verdana, Geneva, Tahoma, sans-serif;
+  /* Theme-variant utility values */
+  --header-bg:     #050505;
+  --overlay-xs:    rgba(255,255,255,0.02);
+  --overlay-sm:    rgba(255,255,255,0.03);
+  --overlay-md:    rgba(255,255,255,0.07);
+  --overlay-bar:   rgba(255,255,255,0.08);
+  --row-border:    rgba(255,255,255,0.04);
+  --btn-dis-bg:    #1e1e1e;
+  --btn-dis-color: #555555;
+}
+
+/* ─── Light theme ─────────────────────────────────────────────────────────── */
+/* html.light-mode has specificity (0,1,1) — beats :root (0,1,0) definitively */
+html.light-mode {
+  --bg:            #f4f0e6;
+  --surface:       #ffffff;
+  --panel:         #f0ebe0;
+  --panel-2:       #e8e2d4;
+  --border:        #c8bfa0;
+  --gold:          #3a3a3a;
+  --gold-lt:       #555555;
+  --text:          #1a1208;
+  --text-2:        #6b5d3f;
+  --green:         #2e7d32;
+  --red:           #c62828;
+  --orange:        #bf5000;
+  --shadow:        0 4px 20px rgba(0,0,0,0.15);
+  --header-bg:     #e8e2d4;
+  --overlay-xs:    rgba(0,0,0,0.02);
+  --overlay-sm:    rgba(0,0,0,0.03);
+  --overlay-md:    rgba(0,0,0,0.05);
+  --overlay-bar:   rgba(0,0,0,0.08);
+  --row-border:    rgba(0,0,0,0.07);
+  --btn-dis-bg:    #d4cfc4;
+  --btn-dis-color: #9e9890;
+}
+
+/* ── Light mode: elements that use --gold as a background need white text ── */
+.light-mode .nav-btn.active        { color: #fff; }
+.light-mode .btn-primary           { color: #fff; }
+.light-mode .btn-primary:hover     { color: #fff; }
+.light-mode .you-badge             { color: #fff; }
+.light-mode #flash-msg             { color: #fff; }
+
+/* ── Light mode: fix hardcoded rgba(212,168,67,...) gold tints ── */
+.light-mode .race-table .entered-row td   { background: rgba(0,0,0,0.04); }
+.light-mode .field-table .player-row td   { background: rgba(0,0,0,0.05); font-weight: bold; }
+.light-mode .results-table .player-row td { background: rgba(0,0,0,0.04); }
+.light-mode .result-win { background: rgba(0,0,0,0.04); border-color: var(--gold); }
+.light-mode .preview-label {
+  color: var(--text-2);
+  background: rgba(0,0,0,0.06);
+  border-color: rgba(0,0,0,0.2);
+}
+
+/* ── Light mode: misc ── */
+.light-mode .tier-low       { color: #777; }
+.light-mode .race-table th  { background: rgba(0,0,0,0.06); }
+.light-mode .modal          { background: rgba(0,0,0,0.5); }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+a      { color: var(--gold); }
+button { cursor: pointer; font-family: var(--font); }
+
+/* ─── Header ──────────────────────────────────────────────────────────────── */
+#game-header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 60px; background: var(--header-bg);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; gap: 20px;
+}
+
+.header-left { display: flex; flex-direction: column; min-width: 150px; }
+.game-title  { font-size: 18px; font-weight: bold; color: var(--gold); line-height: 1; letter-spacing: 0.5px; }
+.subtitle    { font-size: 10px; color: var(--text-2); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+
+.main-nav   { display: flex; gap: 4px; }
+.nav-btn {
+  padding: 5px 14px; background: transparent;
+  border: 1px solid var(--border); color: var(--text-2);
+  border-radius: 4px; font-size: 12px; font-family: var(--font);
+  transition: all 0.15s;
+}
+.nav-btn:hover  { background: var(--panel-2); color: var(--text); border-color: #555; }
+.nav-btn.active { background: var(--gold); color: #000; border-color: var(--gold); font-weight: bold; }
+
+.header-right  { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+.game-info     { display: flex; gap: 20px; }
+.info-item     { display: flex; flex-direction: column; align-items: flex-end; }
+.info-label    { font-size: 9px; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.8px; }
+.info-value    { font-size: 15px; font-weight: bold; }
+.info-value.money { color: var(--gold); }
+
+.save-controls { display: flex; gap: 6px; }
+
+/* ─── Buttons ─────────────────────────────────────────────────────────────── */
+.btn {
+  padding: 7px 16px; border-radius: var(--radius); border: none;
+  font-size: 12px; font-weight: bold; font-family: var(--font); transition: all 0.15s;
+}
+.btn-primary        { background: var(--gold); color: #000; }
+.btn-primary:hover  { background: var(--gold-lt); }
+.btn-secondary      { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover{ background: var(--border); }
+.btn-outline        { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+.btn-outline:hover  { background: rgba(212,168,67,0.1); }
+.btn-disabled       { background: var(--btn-dis-bg); color: var(--btn-dis-color); cursor: not-allowed; }
+.btn-sm             { padding: 3px 10px; font-size: 11px; }
+.btn-large          { padding: 11px 32px; font-size: 14px; }
+.full-width         { width: 100%; }
+
+/* ─── Flash message ───────────────────────────────────────────────────────── */
+#flash-msg {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--gold); color: #000; padding: 9px 24px; border-radius: 20px;
+  font-weight: bold; font-family: var(--font); opacity: 0; transition: opacity 0.3s;
+  z-index: 999; pointer-events: none;
+}
+#flash-msg.visible { opacity: 1; }
+
+/* ─── Main Content ────────────────────────────────────────────────────────── */
+#main-content { margin-top: 60px; min-height: calc(100vh - 60px); }
+
+.screen        { display: none; padding: 24px 20px; max-width: 1300px; margin: 0 auto; }
+.screen.active { display: block; }
+.screen-title  { font-size: 20px; font-weight: bold; color: var(--gold); margin-bottom: 18px; }
+
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.section-desc   { color: var(--text-2); margin-bottom: 16px; font-size: 12px; }
+
+/* ─── Panel ───────────────────────────────────────────────────────────────── */
+.panel {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px;
+}
+.panel h2 { font-size: 14px; font-weight: bold; color: var(--gold-lt); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+.muted { color: var(--text-2); font-size: 12px; }
+
+/* ─── Dashboard ───────────────────────────────────────────────────────────── */
+.dashboard-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 14px; margin-bottom: 18px;
+}
+.dashboard-actions { text-align: center; margin-top: 8px; }
+
+.summary-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 0; border-bottom: 1px solid var(--border);
+}
+.summary-row:last-child { border-bottom: none; }
+.horse-name { font-weight: bold; flex: 1; }
+.horse-meta { color: var(--text-2); font-size: 11px; }
+
+.upcoming-race {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+}
+.upcoming-race:last-child { border-bottom: none; }
+.upcoming-info { display: flex; flex-direction: column; }
+.race-label    { font-size: 11px; color: var(--text-2); }
+
+/* Notifications */
+.notification {
+  display: flex; gap: 10px; padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px; align-items: baseline;
+}
+.notification:last-child { border-bottom: none; }
+.note-week    { color: var(--text-2); min-width: 36px; font-size: 10px; }
+.note-success { color: var(--green); }
+.note-warning { color: var(--orange); }
+.note-cost    { color: var(--red); }
+.note-info    { color: var(--text); }
+
+/* ─── Status Badges ───────────────────────────────────────────────────────── */
+.status-badge {
+  font-size: 10px; padding: 2px 8px; border-radius: 10px;
+  font-weight: bold; white-space: nowrap; font-family: var(--font);
+}
+.status-ready      { background: rgba(76,175,80,0.18);  color: var(--green); }
+.status-fatigued   { background: rgba(255,152,0,0.18);  color: var(--orange); }
+.status-recovering { background: rgba(100,181,246,0.18); color: #64b5f6; }
+.status-injured    { background: rgba(224,82,82,0.18);  color: var(--red); }
+
+/* ─── Speed Tier Badges ───────────────────────────────────────────────────── */
+.speed-tier-badge {
+  display: inline-block; padding: 2px 9px; border-radius: 10px;
+  font-size: 11px; font-weight: bold; font-family: var(--font);
+}
+.speed-tier-badge.sm { padding: 1px 6px; font-size: 10px; }
+.tier-low   { background: rgba(136,136,136,0.15); color: #aaa; }
+.tier-good  { background: rgba(76,175,80,0.18);   color: var(--green); }
+.tier-elite { background: rgba(212,168,67,0.20);  color: var(--gold); }
+
+.streak-badge { font-size: 11px; color: var(--orange); font-weight: bold; }
+
+/* ─── Horse Cards (Stable) ────────────────────────────────────────────────── */
+#stable-content {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px;
+}
+
+.horse-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+}
+.horse-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; background: var(--overlay-xs);
+}
+.horse-card-name { font-size: 15px; font-weight: bold; color: var(--gold-lt); }
+.horse-card-meta { font-size: 11px; color: var(--text-2); margin-top: 2px; }
+
+.stat-grid         { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.stat-grid.compact { padding: 10px; gap: 6px; }
+.stat-item         { display: flex; align-items: center; gap: 8px; }
+.stat-label        { width: 78px; font-size: 11px; color: var(--text-2); flex-shrink: 0; }
+.stat-bar          { flex: 1; height: 5px; background: var(--overlay-bar); border-radius: 3px; overflow: hidden; }
+.stat-fill         { height: 100%; border-radius: 3px; transition: width 0.3s; }
+.stat-val          { min-width: 34px; text-align: right; font-size: 11px; font-weight: bold; }
+.conf-fill         { background: linear-gradient(90deg, #5b8def, #91b8f5); }
+.cons-fill         { background: linear-gradient(90deg, #9b59b6, #ce93d8); }
+.fatigue-fill      { background: linear-gradient(90deg, var(--orange), var(--red)); }
+
+.horse-card-footer {
+  padding: 10px 14px; border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.horse-record       { display: flex; flex-direction: column; font-size: 11px; }
+.horse-card-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+/* ─── Auction ─────────────────────────────────────────────────────────────── */
+.auction-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+
+.auction-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column;
+}
+.auction-card-top     { padding: 12px 12px 8px; }
+.auction-card-top h3  { font-size: 14px; font-weight: bold; color: var(--gold-lt); }
+.horse-meta-row       { font-size: 11px; color: var(--text-2); margin-top: 2px; }
+
+.auction-stats    { padding: 6px 12px 8px; display: flex; flex-direction: column; gap: 6px; }
+.auction-stat-row { display: flex; align-items: center; justify-content: space-between; }
+.stat-chip {
+  background: var(--overlay-md); padding: 1px 7px;
+  border-radius: 8px; font-size: 11px; font-weight: bold;
+}
+
+.auction-price { padding: 4px 12px 8px; font-size: 20px; font-weight: bold; color: var(--gold); text-align: center; }
+.auction-card .btn { margin: 0 12px 12px; }
+
+/* ─── Condition Book ──────────────────────────────────────────────────────── */
+.race-day      { margin-bottom: 26px; }
+.race-day.past { opacity: 0.5; }
+.race-day-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 0; border-bottom: 2px solid var(--gold); margin-bottom: 10px;
+}
+.race-day-title { font-size: 14px; font-weight: bold; color: var(--gold); }
+.past-label {
+  font-size: 10px; color: var(--text-2);
+  background: var(--border); padding: 2px 7px; border-radius: 8px;
+}
+.preview-label {
+  font-size: 10px; color: var(--gold);
+  background: rgba(212,168,67,0.12); padding: 2px 7px; border-radius: 8px;
+  border: 1px solid rgba(212,168,67,0.3);
+}
+/* Track name badge shown in the race day header */
+.track-name-label {
+  font-size: 11px; color: var(--text-2);
+  background: var(--panel-2); padding: 2px 8px; border-radius: 8px;
+  border: 1px solid var(--border); margin-left: auto;
+}
+/* Dark (no-racing) race day */
+.race-day.dark-day {
+  opacity: 0.45; margin-bottom: 12px;
+}
+.race-day.dark-day .race-day-header {
+  border-bottom-color: var(--border);
+}
+.dark-label {
+  font-size: 10px; color: var(--text-2);
+  background: var(--panel-2); padding: 2px 7px; border-radius: 8px;
+  font-style: italic;
+}
+/* Circuit schedule panel (collapsible) */
+/* Stable name banner on dashboard */
+.stable-name-banner {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--gold);
+  letter-spacing: 0.03em;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Text input used in modals */
+.text-input {
+  width: 100%;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.text-input:focus { border-color: var(--gold); }
+.text-input::placeholder { color: var(--text-2); }
+
+/* ── Track hero image (condition book) ──────────────────────────────────── */
+.track-hero {
+  width: 100%;
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 20px;
+  max-height: 260px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+/* BC hero uses background-image so background-size controls zoom level independently */
+.track-hero--bc {
+  height: 260px;
+  background-image: url('BreedersCupLogo.png');
+  background-repeat: no-repeat;
+  background-position: center 87%;
+  background-size: 100%;   /* decrease to zoom out, increase to zoom in */
+}
+
+.track-hero img {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  object-position: center 50%;
+  display: block;
+}
+
+.circuit-schedule-panel {
+  margin-bottom: 20px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+}
+.circuit-schedule-panel summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-2);
+  font-weight: bold;
+  user-select: none;
+}
+.schedule-table {
+  width: 100%; border-collapse: collapse;
+  margin-top: 10px; font-size: 12px;
+}
+.schedule-table td {
+  padding: 5px 10px; border-bottom: 1px solid var(--border);
+  color: var(--text-2);
+}
+.schedule-table tr.schedule-active td {
+  color: var(--gold); font-weight: bold;
+}
+.schedule-table tr:last-child td { border-bottom: none; }
+.race-day.preview { opacity: 0.75; }
+
+.race-table { width: 100%; border-collapse: collapse; }
+.race-table th {
+  text-align: left; padding: 6px 10px; font-size: 10px;
+  color: var(--text-2); text-transform: uppercase; letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.3);
+  font-family: var(--font);
+}
+.race-table td         { padding: 7px 10px; border-bottom: 1px solid var(--row-border); font-size: 12px; }
+.race-table tr:hover td{ background: var(--overlay-xs); }
+.race-table .entered-row td { background: rgba(212,168,67,0.06); }
+
+.race-name     { font-weight: bold; }
+.purse         { color: var(--gold); font-weight: bold; }
+.claiming      { color: var(--orange); }
+.surface-dirt  { color: var(--dirt); font-weight: bold; }
+.surface-turf  { color: var(--turf); font-weight: bold; }
+.entered-label { color: var(--green); font-size: 11px; font-weight: bold; }
+.you-badge {
+  background: var(--gold); color: #000; font-size: 9px;
+  padding: 1px 5px; border-radius: 7px; font-weight: bold; margin-left: 4px;
+}
+
+/* ─── Modals ──────────────────────────────────────────────────────────────── */
+.modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.82);
+  z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal.hidden   { display: none; }
+body.modal-open { overflow: hidden; }
+
+.modal-content {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 26px; max-width: 700px; width: 100%;
+  max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow);
+}
+.modal-content h2 { font-size: 18px; font-weight: bold; color: var(--gold); margin-bottom: 16px; }
+.modal-actions    { display: flex; gap: 10px; margin-top: 18px; justify-content: flex-end; }
+.modal-close      { margin-top: 14px; }
+
+/* ─── Race Modal ──────────────────────────────────────────────────────────── */
+.race-modal-content { max-width: 960px; padding: 18px; }
+
+.race-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+}
+.race-header h2 { font-size: 18px; font-weight: bold; color: var(--gold); }
+.race-header > div:last-child { display: flex; gap: 10px; align-items: center; color: var(--text-2); font-size: 12px; }
+.claiming-tag { background: rgba(255,152,0,0.14); color: var(--orange); padding: 2px 8px; border-radius: 8px; font-size: 11px; }
+
+#race-canvas-container { border-radius: 6px; overflow: hidden; margin-bottom: 10px; }
+#race-canvas  { display: block; width: 100%; }
+#race-status  { text-align: center; color: var(--text-2); min-height: 20px; margin-bottom: 8px; font-size: 12px; }
+
+.field-table { width: 100%; border-collapse: collapse; }
+.field-table th { font-size: 10px; color: var(--text-2); text-transform: uppercase; padding: 5px 8px; border-bottom: 1px solid var(--border); }
+.field-table td { padding: 6px 8px; font-size: 12px; border-bottom: 1px solid var(--row-border); }
+.field-table .player-row td { background: rgba(212,168,67,0.08); font-weight: bold; }
+.cloth-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+
+#race-controls { text-align: center; margin: 10px 0; }
+
+/* Race Results */
+#race-results { margin-top: 10px; }
+.result-banner {
+  text-align: center; padding: 14px; border-radius: var(--radius); margin-bottom: 10px;
+}
+.result-win    { background: rgba(212,168,67,0.12); border: 1px solid var(--gold); }
+.result-place  { background: rgba(100,181,246,0.08); border: 1px solid #64b5f6; }
+.result-pos    { font-size: 22px; font-weight: bold; color: var(--gold); }
+.result-earned { font-size: 16px; color: var(--green); margin-top: 4px; }
+.claimed-notice { color: var(--orange); margin-top: 8px; font-size: 12px; }
+
+.result-notes  { margin: 8px 0; }
+
+.results-table { width: 100%; border-collapse: collapse; }
+.results-table th { font-size: 10px; color: var(--text-2); text-transform: uppercase; padding: 5px 10px; border-bottom: 1px solid var(--border); }
+.results-table td { padding: 7px 10px; border-bottom: 1px solid var(--row-border); font-size: 12px; }
+.results-table .player-row td { background: rgba(212,168,67,0.07); }
+
+/* ─── Entry Modal ─────────────────────────────────────────────────────────── */
+.race-detail-box {
+  background: var(--overlay-sm); border-radius: var(--radius);
+  padding: 12px; margin-bottom: 14px; border: 1px solid var(--border);
+}
+.race-detail-box strong { font-size: 14px; }
+.race-meta-line  { color: var(--text-2); font-size: 12px; margin-top: 4px; }
+.claiming-warning{ color: var(--orange); font-size: 11px; margin-top: 5px; }
+.entry-fee-line  { color: var(--text-2); font-size: 11px; margin-top: 4px; }
+.warning-text    { color: var(--orange); }
+
+.horse-select-list { margin: 8px 0; display: flex; flex-direction: column; gap: 6px; }
+.horse-select-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--overlay-sm); padding: 9px 11px;
+  border-radius: var(--radius); cursor: pointer;
+  border: 1px solid transparent; transition: border-color 0.15s;
+}
+.horse-select-row:hover { border-color: var(--gold); }
+.horse-select-row input[type=radio] { accent-color: var(--gold); }
+.horse-select-row .horse-meta { margin-left: auto; color: var(--text-2); font-size: 11px; }
+/* AOC (Allowance Optional Claiming) entry rows */
+.aoc-row { flex-wrap: wrap; }
+.claiming-opt-label {
+  display: flex; align-items: center; gap: 5px;
+  width: 100%; padding-left: 24px; margin-top: 4px;
+  font-size: 12px; color: var(--text-2); cursor: pointer;
+}
+.claiming-opt-label input[type=checkbox] { accent-color: var(--gold); }
+.claiming-req-note {
+  width: 100%; padding-left: 24px; margin-top: 4px;
+  font-size: 12px; color: var(--orange);
+}
+
+.ineligible-row {
+  display: flex; justify-content: space-between; padding: 5px 11px;
+  font-size: 11px; color: var(--text-2);
+}
+details summary { cursor: pointer; color: var(--text-2); font-size: 11px; margin-top: 8px; }
+
+/* ─── Horse Detail Modal ──────────────────────────────────────────────────── */
+.detail-table { width: 100%; border-collapse: collapse; }
+.detail-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); font-size: 12px; }
+.detail-table td:first-child { color: var(--text-2); width: 110px; }
+
+/* Jockey Notes */
+.jockey-notes { display: flex; flex-direction: column; gap: 5px; }
+.jockey-note {
+  display: flex; align-items: flex-start; gap: 7px;
+  padding: 7px 10px; border-radius: var(--radius);
+  font-size: 11px; line-height: 1.45;
+}
+.note-surface  { background: rgba(58,148,80,0.10); border: 1px solid rgba(58,148,80,0.25); }
+.note-distance { background: rgba(100,181,246,0.08); border: 1px solid rgba(100,181,246,0.20); }
+.note-icon     { flex-shrink: 0; font-size: 13px; }
+.note-week-tag { margin-left: auto; white-space: nowrap; color: var(--text-2); font-size: 10px; flex-shrink: 0; }
+
+/* ─── Theme Toggle ────────────────────────────────────────────────────────── */
+.theme-toggle-btn {
+  background: none; border: none; cursor: pointer; padding: 3px 0;
+  display: flex; align-items: center; gap: 7px; flex-shrink: 0;
+}
+.toggle-track {
+  width: 40px; height: 22px; background: var(--panel-2);
+  border: 1px solid var(--border); border-radius: 22px;
+  position: relative; flex-shrink: 0; transition: background 0.2s;
+}
+.toggle-thumb {
+  position: absolute; top: 2px; left: 2px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--gold); transition: transform 0.2s;
+  /* position driven by JS via inline style — no CSS class needed */
+}
+#theme-icon { font-size: 15px; line-height: 1; user-select: none; }
+
+/* ─── Grade Badges ────────────────────────────────────────────────────────── */
+.grade-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+  line-height: 1.7;
+  white-space: nowrap;
+}
+.grade-g1   { background: #c9a227; color: #000; }   /* gold   */
+.grade-g2   { background: #9e9e9e; color: #000; }   /* silver */
+.grade-g3   { background: #b07040; color: #fff; }   /* bronze */
+.grade-l    { background: #1565c0; color: #fff; }   /* listed — blue */
+.grade-none { background: transparent; color: var(--text-2); font-weight: 400; }
+
+/* Stakes rows in the condition book get a subtle left accent */
+.race-table .stakes-row td:first-child {
+  border-left: 2px solid var(--gold);
+}
+.race-table .stakes-row td {
+  background: var(--overlay-xs);
+}
+
+/* ─── Help / Guide Modal ──────────────────────────────────────────────────── */
+.guide-modal-content {
+  max-width: 720px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+.guide-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.guide-header h2 { margin: 0; }
+.guide-body {
+  overflow-y: auto;
+  padding: 20px 24px 28px;
+  flex: 1;
+}
+.guide-section {
+  margin-bottom: 28px;
+}
+.guide-section h3 {
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+}
+.guide-section p {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.guide-section ul,
+.guide-section ol {
+  padding-left: 20px;
+  margin-bottom: 8px;
+}
+.guide-section li {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.guide-section strong { color: var(--text); }
+.guide-section em     { color: var(--gold-lt); font-style: normal; }
+.guide-section code {
+  background: var(--panel-2);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+/* ─── Breeding Farm Screen ────────────────────────────────────────────────── */
+.mare-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.mare-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.mare-card-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.mare-card-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mare-foals {
+  border-top: 1px solid var(--border);
+  padding: 10px 16px;
+  background: var(--surface);
+}
+.foal-row {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 13px;
+  border-bottom: 1px solid var(--row-border);
+}
+.foal-row:last-child { border-bottom: none; }
+.breed-status        { font-size: 12px; font-weight: 600; }
+.breed-pregnant      { color: var(--green); }
+.breed-failed        { color: var(--text-2); font-style: italic; }
+.breed-open          { color: var(--text-2); }
+.pensioned-section {
+  margin-top: 28px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+.pensioned-section h3 {
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+.pensioned-mare {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 5px 0;
+  font-size: 13px;
+  color: var(--text-2);
+  border-bottom: 1px solid var(--row-border);
+}
+.pensioned-mare:last-child { border-bottom: none; }
+.breed-stallion-list {
+  max-height: 380px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 4px;
+}
+
+/* ─── Circuit Tabs (Condition Book & Stakes Book) ────────────────────────── */
+.circuit-tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 18px;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0;
+}
+.circuit-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  color: var(--text-2);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 8px 18px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.circuit-tab:hover  { color: var(--text); }
+.circuit-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+.light-mode .circuit-tab.active { color: var(--gold); }
+
+.schedule-active-badge {
+  background: rgba(212,168,67,0.18);
+  color: var(--gold);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-left: 8px;
+}
+
+/* ─── Stakes Book Screen ──────────────────────────────────────────────────── */
+.stakes-book-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.filter-select {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 5px 10px;
+  font-family: var(--font);
+  font-size: 12px;
+  cursor: pointer;
+}
+.filter-select:focus { outline: none; border-color: var(--gold); }
+
+.stakes-book-table { width: 100%; }
+.stakes-book-table .stakes-date-cell {
+  white-space: nowrap;
+  color: var(--text-2);
+  font-size: 11px;
+}
+.stakes-detail-box { border-left: 3px solid var(--gold); }
+
+/* ─── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
+  #stable-content { grid-template-columns: 1fr; }
+  .auction-grid   { grid-template-columns: repeat(2, 1fr); }
+  .race-table th:nth-child(4),
+  .race-table td:nth-child(4) { display: none; }
+  #game-header    { flex-wrap: wrap; height: auto; padding: 8px 12px; }
+  .header-center  { order: 3; width: 100%; }
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }

@@ -1,0 +1,15 @@
+Santa Anita Park,,,
+"Dirt: 5.5f-7f, 8f-9f",,,
+"Turf: 6f-6.5f, 8f-10f",,,
+Race,Purse,Difficulty,Notes
+Maiden,"$80,000 ",25,
+Allowance N1X,"$85,000 ",28,"N1X: restricted to horses that have not won one race other than maiden or claiming, or claiming $75,000 "
+Allowance N2X,"$90,000 ",30,"N2X: restricted to horses that have not won two races other than maiden or claiming, or claiming $100,000 "
+"Claiming $50,000","$70,000 ",25,
+"Claiming $35,000","$60,000 ",22,
+"Claiming $20,000","$50,000 ",19,
+"Claiming $10,000","$40,000 ",16,
+"Claiming $50,000 N2L","$45,000 ",21,
+"Claiming $25,000 N2L","$32,000 ",15,
+"Maiden Claiming $50,000","$40,000 ",19,
+"Maiden Claiming $20,000","$30,000 ",13,
