@@ -158,6 +158,15 @@ class UI {
     document.getElementById('btn-new-game').addEventListener('click', () => this.newGame());
     document.getElementById('btn-help').addEventListener('click', () => this._showModal('help-modal'));
     document.getElementById('btn-close-help').addEventListener('click', () => this._hideModal('help-modal'));
+    document.querySelectorAll('.guide-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.guide-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const tab = btn.dataset.guideTab;
+        document.getElementById('guide-tab-guide').classList.toggle('d-none', tab !== 'guide');
+        document.getElementById('guide-tab-changelog').classList.toggle('d-none', tab !== 'changelog');
+      });
+    });
     document.getElementById('btn-confirm-new-game').addEventListener('click', () => this._confirmNewGame());
     document.getElementById('btn-cancel-new-game').addEventListener('click', () => this._hideModal('new-game-modal'));
     document.getElementById('stable-name-input').addEventListener('keydown', e => {
