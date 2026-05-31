@@ -340,7 +340,7 @@ class GameState {
       const weeksLeft = GAME_CONFIG.WEEKS_BETWEEN_RACES - horse.weeksSinceRace;
       return { ok: false, msg: `${horse.name} needs ${weeksLeft} more week${weeksLeft !== 1 ? 's' : ''} before racing again.` };
     }
-    if (this.money < targetRace.entryFee)
+    if (this.money < targetRace.entryFee && targetRace.entryFee > 0)
       return { ok: false, msg: 'Insufficient funds for entry fee.' };
 
     // One race per horse per condition book period
