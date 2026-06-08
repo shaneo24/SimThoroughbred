@@ -339,7 +339,6 @@ class UI {
         <div class="stat-item">
           <span class="stat-label">Speed</span>
           <span class="speed-tier-badge ${tierClass}">${h.speedTier}</span>
-          <span class="stat-val muted" style="font-size:11px">${h.speed} / ${h.startSpeed + h.potential}</span>
         </div>
         <div class="stat-item">
           <span class="stat-label">Confidence</span>
