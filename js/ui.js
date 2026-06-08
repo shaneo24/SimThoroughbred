@@ -368,12 +368,26 @@ class UI {
               : `<button class="btn btn-primary btn-sm" onclick="ui.showScreen('condition-book')">Enter Race</button>`}
             <button class="btn btn-secondary btn-sm" onclick="ui.showHorseDetail('${h.id}')">Details</button>
           </div>
-          ${(h.sex === 'filly' || h.sex === 'mare')
-            ? `<button class="btn btn-secondary btn-sm" onclick="ui.retireMare('${h.id}')">Retire to Farm</button>`
-            : ''}
+          ${(h.starts >= 5 || h.sex === 'filly' || h.sex === 'mare') ? `
+            <div class="horse-card-actions">
+              ${h.starts >= 5
+                ? `<button class="btn btn-secondary btn-sm" onclick="ui.sellHorse('${h.id}')">Sell (${formatMoney(this.game.getSellPrice(h))})</button>`
+                : ''}
+              ${(h.sex === 'filly' || h.sex === 'mare')
+                ? `<button class="btn btn-secondary btn-sm" onclick="ui.retireMare('${h.id}')">Retire to Farm</button>`
+                : ''}
+            </div>` : ''}
         </div>
       </div>
     </div>`;
+  }
+
+  // Cosmetic only — jockey choice has no effect on race results.
+  changeJockey(horseId, jockey) {
+    const h = this.game.horses.find(x => x.id === horseId);
+    if (!h) return;
+    h.jockey = jockey;
+    this.game.saveToLocal();
   }
 
   showHorseDetail(horseId) {
@@ -397,7 +411,12 @@ class UI {
         <tr><td>Fatigue</td><td>${h.fatigue}/100</td></tr>
         <tr><td>Record</td><td>${h.wins}W – ${h.starts - h.wins}L</td></tr>
         <tr><td>Earnings</td><td>${formatMoney(h.earnings)}</td></tr>
-        <tr><td>Jockey</td><td>${h.jockey}</td></tr>
+        <tr><td>Jockey</td><td>
+          <select class="filter-select" style="font-size:12px;padding:2px 6px"
+            onchange="ui.changeJockey('${h.id}', this.value)">
+            ${JOCKEY_NAMES.map(j => `<option${j === h.jockey ? ' selected' : ''}>${j}</option>`).join('')}
+          </select>
+        </td></tr>
       </table>
 
       <h4 style="margin-top:18px;margin-bottom:8px">Jockey Notes</h4>
@@ -506,6 +525,37 @@ _bindAuction() {
     if (btn) btn.style.display = hasBreeding ? '' : 'none';
   }
 
+  sellHorse(horseId) {
+    const horse = this.game.horses.find(h => h.id === horseId);
+    if (!horse) return;
+    const price = this.game.getSellPrice(horse);
+    if (!price) { alert(`${horse.name} needs at least 5 career starts before being sold.`); return; }
+    if (!confirm(`Sell ${horse.name} for ${formatMoney(price)}?\n\nThis cannot be undone.`)) return;
+    const result = this.game.sellHorse(horseId);
+    if (result.ok) {
+      this.updateHeader();
+      this.renderStable();
+      this.renderDashboard();
+      this.flashMsg(`${horse.name} sold for ${formatMoney(result.price)}!`);
+    }
+  }
+
+  pensionMare(mareId) {
+    const mare = this.game.retiredMares.find(m => m.id === mareId);
+    if (!mare) return;
+    const pregnantNote = mare.breedingStatus === 'pregnant'
+      ? `\n\nNote: ${mare.name} is currently in foal — the pregnancy will be cancelled.` : '';
+    if (!confirm(`Pension ${mare.name} from the breeding barn?${pregnantNote}\n\nShe will no longer be able to breed.`)) return;
+    const result = this.game.pensionMare(mareId);
+    if (result.ok) {
+      this.updateHeader();
+      this.renderBreeding();
+      this.flashMsg(`${mare.name} has been pensioned.`);
+    } else {
+      alert(result.msg);
+    }
+  }
+
   retireMare(horseId) {
     const horse = this.game.horses.find(h => h.id === horseId);
     if (!horse) return;
@@ -582,6 +632,7 @@ _bindAuction() {
           <span class="horse-name">${mare.name}</span>
           <span class="muted">${mare.age}yo ${mare.sex}</span>
           <span class="speed-tier-badge ${tierClass} sm">${mare.speedTier}</span>
+          <button class="btn btn-secondary btn-sm" onclick="ui.pensionMare('${mare.id}')">Pension</button>
         </div>
         <div class="mare-card-status">${statusHtml}</div>
       </div>
@@ -1263,9 +1314,9 @@ _bindAuction() {
       // Non-N1X horses that meet age/sex: must run for the claiming price.
       const claimPrice    = race.optionalClaimingPrice;
       const n1xHorses     = this.game.horses.filter(h =>
-        h.isN1XEligible && h.qualifiesAgeAndSex(race.ageDivision, race.sexRestriction) && h.canRace);
+        h.isProtectedForAOC(race.raceTypeId) && h.qualifiesAgeAndSex(race.ageDivision, race.sexRestriction) && h.canRace);
       const claimingHorses = this.game.horses.filter(h =>
-        !h.isN1XEligible && h.qualifiesAgeAndSex(race.ageDivision, race.sexRestriction) && h.canRace);
+        !h.isProtectedForAOC(race.raceTypeId) && h.qualifiesAgeAndSex(race.ageDivision, race.sexRestriction) && h.canRace);
       const allEnterable  = [...n1xHorses, ...claimingHorses];
       const forcedClaimIds = new Set(claimingHorses.map(h => h.id));
 
@@ -1277,7 +1328,7 @@ _bindAuction() {
           <span class="horse-name">${h.name}</span>
           <span class="horse-meta">
             ${h.age}yo · <span class="speed-tier-badge ${tierClass} sm">${h.speedTier}</span> · ${h.wins}W
-            · <em>${isForced ? 'must run for claim' : 'N1X eligible'}</em>
+            · <em>${isForced ? 'must run for claim' : 'eligible'}</em>
           </span>
           ${isForced
             ? `<span class="claiming-req-note">Must run for ${formatMoney(claimPrice)} claiming</span>`

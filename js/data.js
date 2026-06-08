@@ -7,9 +7,21 @@ const GAME_CONFIG = {
   VET_COST_MIN: 300,
   VET_COST_MAX: 450,
   WEEKS_BETWEEN_RACES: 2,
-  INJURY_CHANCE_PER_RACE: 0.08,
-  INJURY_MIN_WEEKS: 4,
-  INJURY_MAX_WEEKS: 12,
+  // Injury chances per race: first roll whether any injury occurs, then roll severity
+  INJURY_CHANCE_RACE:          0.10,  // 10% chance of any injury per race
+  INJURY_MAJOR_CHANCE_RACE:    0.20,  // 20% of injuries are major
+  INJURY_MODERATE_CHANCE_RACE: 0.50,  // 50% of injuries are major or moderate (next 30%)
+  // remaining 50% are minor (no constant needed)
+  // Weekly training injury (non-racing, non-injured horses)
+  INJURY_WEEKLY_CHANCE:        0.01,
+  // Weekly shin soreness chance for 2yo horses
+  INJURY_SHIN_CHANCE_2YO:      0.01,
+  // Duration ranges (weeks) per severity
+  INJURY_MAJOR_MIN: 10, INJURY_MAJOR_MAX: 20,
+  INJURY_MODERATE_MIN: 6, INJURY_MODERATE_MAX: 10,
+  INJURY_MINOR_MIN: 4,  INJURY_MINOR_MAX: 6,
+  INJURY_SHIN_MIN: 12,  INJURY_SHIN_MAX: 20,
+  INJURY_MAJOR_NAMES: ['ankle surgery', 'knee chip removal', 'colic', 'soreness'],
   AUCTION_HORSE_COUNT: 8,
   CONDITION_BOOK_WEEKS: 2,
   RACES_PER_DAY: 10,
@@ -430,6 +442,7 @@ function formatDivision(ageDivision, sexRestriction) {
 // ── Southern California Stakes Schedule ──────────────────────────────────────
 // Fixed annual events derived from SoCalStakes.csv.
 // difficulty is taken directly from the CSV — no age/sex adjustments applied.
+// §BUILD_START:STAKES_SCHEDULE
 const STAKES_SCHEDULE = [
 
   // ══ SANTA ANITA PARK — WINTER/SPRING MEET (Weeks 1–24) ═══════════════════════
@@ -601,6 +614,10 @@ const STAKES_SCHEDULE = [
     purse:   150000, grade: 'L',  ageDivision: '3yo',  sexRestriction: 'open',    surface: 'turf', distance: 8,   difficulty: 31 },
   { name: 'CashCall Derby',                 trackId: 'del_mar',     weekNumber: 27, dayLabel: 'Saturday',
     purse:   400000, grade: 'G3', ageDivision: '3yo',  sexRestriction: 'open',    surface: 'dirt', distance: 9,   difficulty: 33 },
+  { name: 'Landaluce Stakes',               trackId: 'del_mar',     weekNumber: 27, dayLabel: 'Saturday',
+    purse:   150000, grade: null, ageDivision: '2yo',  sexRestriction: 'fillies',    surface: 'dirt', distance: 5.5,   difficulty: 21 },
+  { name: 'Hollywood Juvenile',             trackId: 'del_mar',     weekNumber: 27, dayLabel: 'Sunday',
+    purse:   150000, grade: null, ageDivision: '2yo', sexRestriction: 'open', surface: 'dirt', distance: 5.5, difficulty: 24 },
   { name: 'Great Lady M Stakes',            trackId: 'del_mar',     weekNumber: 27, dayLabel: 'Sunday',
     purse:   500000, grade: 'G2', ageDivision: '3yo+', sexRestriction: 'fillies', surface: 'dirt', distance: 6.5, difficulty: 33 },
 
@@ -816,6 +833,7 @@ const STAKES_SCHEDULE = [
   { name: 'Eddie Logan Stakes',             trackId: 'santa_anita', weekNumber: 52, dayLabel: 'Saturday',
     purse:   150000, grade: null, ageDivision: '2yo',  sexRestriction: 'open',    surface: 'turf', distance: 8,   difficulty: 30 },
 ];
+// §BUILD_END:STAKES_SCHEDULE
 
 // ── Save-file signing key ─────────────────────────────────────────────────────
 // Used to generate an HMAC-SHA256 signature over every save file.
@@ -825,6 +843,7 @@ const SAVE_HMAC_KEY = 'SimTB_2026_b3t4!xK9#mPv7nQ4_LrFw8';
 
 // ── Stallion roster ───────────────────────────────────────────────────────────
 // Source: Stallions.csv.  Speed and surface are hidden from the player.
+// §BUILD_START:STALLIONS
 const STALLIONS = [
   { name: 'Into Mischief',     studFee: 250000, speed: 45, surface: 'dirt' },
   { name: 'Not This Time',     studFee: 250000, speed: 45, surface: 'both' },
@@ -880,10 +899,12 @@ const STALLIONS = [
   { name: 'Audible',           studFee:   7500, speed: 37, surface: 'both' },
   { name: 'Mo Town',           studFee:   7500, speed: 37, surface: 'both' },
 ];
+// §BUILD_END:STALLIONS
 
 // ── Breeders' Cup Schedule ────────────────────────────────────────────────────
 // Always held at Keeneland, Week 44.
 // Nov 1 = Friday of Wk 44 (dayOffset +3); Nov 2 = Saturday of Wk 44 (dayOffset +4).
+// §BUILD_START:BREEDERS_CUP
 const BREEDERS_CUP_SCHEDULE = [
   // ── Day 1: Friday, November 1 ────────────────────────────────────────────
   { name: "Breeders' Cup Juvenile Turf Sprint",   trackId: 'keeneland', trackName: 'Keeneland',
@@ -930,12 +951,14 @@ const BREEDERS_CUP_SCHEDULE = [
     weekNumber: 44, dayLabel: 'Saturday', purse:  7000000, grade: 'G1',
     ageDivision: '3yo+', sexRestriction: 'open',    surface: 'dirt', distance: 10,   difficulty: 41 },
 ];
+// §BUILD_END:BREEDERS_CUP
 
 // ── Triple Crown Schedule ─────────────────────────────────────────────────────
 // Kentucky Derby:  Wk 18, Sat May 4   (Churchill Downs) — field capped at 20
 // Preakness:       Wk 20, Sat May 18  (Pimlico)
 // Belmont Stakes:  Wk 23, Sat Jun 8   (Belmont Park)
 // KY Derby qualification: top-3 finish in San Felipe Stakes OR Santa Anita Derby
+// §BUILD_START:TRIPLE_CROWN
 const TRIPLE_CROWN_SCHEDULE = [
   { name: 'Kentucky Derby',   trackId: 'churchill_downs', trackName: 'Churchill Downs',
     weekNumber: 18, dayLabel: 'Saturday', purse: 5000000, grade: 'G1',
@@ -948,6 +971,7 @@ const TRIPLE_CROWN_SCHEDULE = [
     weekNumber: 23, dayLabel: 'Saturday', purse: 2000000, grade: 'G1',
     ageDivision: '3yo', sexRestriction: 'open', surface: 'dirt', distance: 12,   difficulty: 36 },
 ];
+// §BUILD_END:TRIPLE_CROWN
 
 let _idCounter = 1;
 function uid() { return 'id_' + (_idCounter++) + '_' + Math.random().toString(36).slice(2, 6); }

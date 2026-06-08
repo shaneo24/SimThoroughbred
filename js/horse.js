@@ -23,6 +23,8 @@ class Horse {
     this.fatigue         = data.fatigue ?? 0;
     this.injured         = data.injured ?? false;
     this.injuryWeeksLeft = data.injuryWeeksLeft ?? 0;
+    this.injuryType      = data.injuryType ?? null;   // 'minor'|'moderate'|'major'|'shin'|null
+    this.hadShinSoreness = data.hadShinSoreness ?? false; // can only occur once per horse
     this.wonLastRace     = data.wonLastRace ?? false;
     this.weeksSinceRace  = data.weeksSinceRace ?? 99;
     this.ownedWeeks      = data.ownedWeeks ?? 0;
@@ -116,6 +118,15 @@ class Horse {
     return nonMdnClmWins < 2;
   }
 
+  // Returns true if this horse is "protected" (eligible without claiming tag) for an AOC race.
+  // For N1X AOC races the horse must be N1X-clean; for N2X AOC races N2X-clean is sufficient.
+  isProtectedForAOC(raceTypeId) {
+    const rt = RACE_TYPES[raceTypeId];
+    if (!rt) return false;
+    if (rt.eligibility === 'n2x') return this.isN2XEligible;
+    return this.isN1XEligible; // default: N1X or open AOC
+  }
+
   // Kentucky Derby qualification: top-3 finish in San Felipe Stakes OR Santa Anita Derby
   get isKentuckyDerbyEligible() {
     return this.raceHistory.some(r =>
@@ -151,7 +162,7 @@ class Horse {
       case 'maiden': if (this.wins > 0)           return false; break;
       case 'n1x':   if (!this.isN1XEligible)      return false; break;
       case 'n2x':   if (!this.isN2XEligible)      return false; break;
-      case 'n2l':   if (this.wins > 1)             return false; break;
+      case 'n2l':   if (!this.isN2XEligible)        return false; break;
       case 'open':  /* no restriction */            break;
     }
 
@@ -193,16 +204,38 @@ class Horse {
     const fatIncrease = position <= 4 ? rand(50, 60) : rand(40, 55);
     this.fatigue = Math.min(100, this.fatigue + fatIncrease);
 
-    // Injury check
-    if (Math.random() < GAME_CONFIG.INJURY_CHANCE_PER_RACE) {
-      this.injured         = true;
-      this.injuryWeeksLeft = rand(GAME_CONFIG.INJURY_MIN_WEEKS, GAME_CONFIG.INJURY_MAX_WEEKS);
+    // Injury check — 10% chance of any injury, then roll for severity
+    let injuryNotice = null;
+    if (Math.random() < GAME_CONFIG.INJURY_CHANCE_RACE) {
+      const severityRoll = Math.random();
+      if (severityRoll < GAME_CONFIG.INJURY_MAJOR_CHANCE_RACE) {
+        // 20% of injuries are major
+        const name = GAME_CONFIG.INJURY_MAJOR_NAMES[
+          Math.floor(Math.random() * GAME_CONFIG.INJURY_MAJOR_NAMES.length)
+        ];
+        this.injured         = true;
+        this.injuryType      = 'major';
+        this.injuryWeeksLeft = rand(GAME_CONFIG.INJURY_MAJOR_MIN, GAME_CONFIG.INJURY_MAJOR_MAX);
+        injuryNotice = { severity: 'major', label: name, weeks: this.injuryWeeksLeft };
+      } else if (severityRoll < GAME_CONFIG.INJURY_MODERATE_CHANCE_RACE) {
+        // 30% of injuries are moderate
+        this.injured         = true;
+        this.injuryType      = 'moderate';
+        this.injuryWeeksLeft = rand(GAME_CONFIG.INJURY_MODERATE_MIN, GAME_CONFIG.INJURY_MODERATE_MAX);
+        injuryNotice = { severity: 'moderate', weeks: this.injuryWeeksLeft };
+      } else {
+        // 50% of injuries are minor
+        this.injured         = true;
+        this.injuryType      = 'minor';
+        this.injuryWeeksLeft = rand(GAME_CONFIG.INJURY_MINOR_MIN, GAME_CONFIG.INJURY_MINOR_MAX);
+        injuryNotice = { severity: 'minor', weeks: this.injuryWeeksLeft };
+      }
     }
 
     this.raceHistory.unshift({ week: null, raceType: raceTypeId, position, earned, distance, surface });
     if (this.raceHistory.length > 20) this.raceHistory.pop();
 
-    return earned;
+    return { earned, injuryNotice };
   }
 
   // ── Weekly update ──────────────────────────────────────────────────────────
@@ -211,10 +244,13 @@ class Horse {
     this.ownedWeeks++;
     this.weeksSinceRace++;
 
+    let weeklyInjuryNotice = null;
+
     if (this.injured) {
       this.injuryWeeksLeft--;
       if (this.injuryWeeksLeft <= 0) {
         this.injured         = false;
+        this.injuryType      = null;
         this.injuryWeeksLeft = 0;
         this.fatigue         = 20;
       }
@@ -224,7 +260,25 @@ class Horse {
       if (this.fatigue > 0) {
         this.fatigue = Math.max(0, this.fatigue - rand(10, 15));
       }
+
+      // 2yo shin soreness check (age 2 only; can only happen once per horse)
+      if (this.age === 2 && !this.hadShinSoreness && Math.random() < GAME_CONFIG.INJURY_SHIN_CHANCE_2YO) {
+        this.injured         = true;
+        this.injuryType      = 'shin';
+        this.injuryWeeksLeft = rand(GAME_CONFIG.INJURY_SHIN_MIN, GAME_CONFIG.INJURY_SHIN_MAX);
+        this.hadShinSoreness = true;
+        weeklyInjuryNotice   = { severity: 'shin', weeks: this.injuryWeeksLeft };
+      }
+      // General weekly training injury (all non-injured horses)
+      else if (Math.random() < GAME_CONFIG.INJURY_WEEKLY_CHANCE) {
+        this.injured         = true;
+        this.injuryType      = 'minor';
+        this.injuryWeeksLeft = rand(GAME_CONFIG.INJURY_MINOR_MIN, GAME_CONFIG.INJURY_MINOR_MAX);
+        weeklyInjuryNotice   = { severity: 'minor', weeks: this.injuryWeeksLeft };
+      }
     }
+
+    return { weeklyInjuryNotice };
 
     // Potential-driven speed improvement — age < 5 only; fatigue and injury are no barrier
     // potential maps 1:1 to max gain (potential 7 → up to +7 from startSpeed)
@@ -285,7 +339,8 @@ class Horse {
     const potTier    = potAdjSpd <= 17 ? 'Low' : potAdjSpd <= 32 ? 'Fair' : 'Elite';
     const wrongOf    = t => { const o = TIERS.filter(x => x !== t); return o[rand(0, 1)]; };
     const displaySpeedTier = Math.random() < 0.75 ? spdTier : wrongOf(spdTier);
-    let   displayPotTier   = Math.random() < 0.75 ? potTier : wrongOf(potTier);
+    // Potential label is always accurate.
+    let   displayPotTier   = potTier;
     if (TIER_ORDER[displayPotTier] < TIER_ORDER[displaySpeedTier]) displayPotTier = displaySpeedTier;
 
     return new Horse({
@@ -315,13 +370,13 @@ class Horse {
     let min, max;
     if      (adj >= 30) { min =  200000; max = 3000000; }
     else if (adj >= 27) { min =  100000; max = 1500000; }
-    else if (adj >= 24) { min =   80000; max =  800000; }
-    else if (adj >= 21) { min =   70000; max =  500000; }
-    else if (adj >= 18) { min =   50000; max =  200000; }
-    else if (adj >= 15) { min =   40000; max =  150000; }
-    else if (adj >= 12) { min =   30000; max =  100000; }
-    else if (adj >=  9) { min =   20000; max =   80000; }
-    else                { min =   20000; max =   50000; }  // ≤ 8
+    else if (adj >= 24) { min =   80000; max =  500000; }
+    else if (adj >= 21) { min =   70000; max =  200000; }
+    else if (adj >= 18) { min =   50000; max =  140000; }
+    else if (adj >= 15) { min =   40000; max =  100000; }
+    else if (adj >= 12) { min =   30000; max =   80000; }
+    else if (adj >=  9) { min =   20000; max =   60000; }
+    else                { min =   20000; max =   40000; }  // ≤ 8
     return Math.round(rand(min, max) / 5000) * 5000;
   }
 
@@ -372,7 +427,7 @@ class Horse {
       stamina: this.stamina, potential: this.potential,
       confidence: this.confidence, consistency: this.consistency,
       preferredSurface: this.preferredSurface,
-      fatigue: this.fatigue, injured: this.injured, injuryWeeksLeft: this.injuryWeeksLeft,
+      fatigue: this.fatigue, injured: this.injured, injuryWeeksLeft: this.injuryWeeksLeft, injuryType: this.injuryType, hadShinSoreness: this.hadShinSoreness,
       wonLastRace: this.wonLastRace,
       weeksSinceRace: this.weeksSinceRace, ownedWeeks: this.ownedWeeks,
       wins: this.wins, starts: this.starts, earnings: this.earnings,

@@ -199,17 +199,65 @@ class GameState {
 
   // ── Breeding Farm ──────────────────────────────────────────────────────────
 
+  // ── Selling ────────────────────────────────────────────────────────────────
+
+  getSellPrice(horse) {
+    if (horse.starts < 5) return null;
+    const raw = horse.earnings / (1 + (horse.starts / 15)) - horse.starts * 2000;
+    const base = Math.max(5000, Math.round(raw));
+    // Age-based depreciation for older horses.
+    const ageDiscount = horse.age >= 9 ? 0.20
+                      : horse.age === 8 ? 0.30
+                      : horse.age === 7 ? 0.50
+                      : horse.age === 6 ? 0.70
+                      : horse.age === 5 ? 0.90
+                      : 1.00;
+    return Math.max(5000, Math.round(base * ageDiscount));
+  }
+
+  sellHorse(horseId) {
+    const idx = this.horses.findIndex(h => h.id === horseId);
+    if (idx === -1) return { ok: false, msg: 'Horse not found.' };
+    const horse = this.horses[idx];
+    if (horse.starts < 5)
+      return { ok: false, msg: `${horse.name} needs at least 5 career starts before being sold.` };
+    const price = this.getSellPrice(horse);
+    this.money += price;
+    this.horses.splice(idx, 1);
+    this.notify(`${horse.name} sold for ${formatMoney(price)}.`, 'success');
+    return { ok: true, price };
+  }
+
+  // ── Breeding Farm ──────────────────────────────────────────────────────────
+
   retireMare(horseId) {
     const idx = this.horses.findIndex(h => h.id === horseId);
     if (idx === -1) return { ok: false, msg: 'Horse not found.' };
     const mare = this.horses[idx];
     if (mare.sex !== 'filly' && mare.sex !== 'mare')
       return { ok: false, msg: 'Only fillies and mares can be retired to the breeding farm.' };
+    mare.speed = Math.min(42, mare.startSpeed + mare.potential);
     mare.pensionAge = rand(22, 30);
     mare.breedingStatus = 'open';
     this.horses.splice(idx, 1);
     this.retiredMares.push(mare);
     this.notify(`${mare.name} has been retired to the breeding farm.`, 'info');
+    return { ok: true };
+  }
+
+  pensionMare(mareId) {
+    const mare = this.retiredMares.find(m => m.id === mareId);
+    if (!mare) return { ok: false, msg: 'Mare not found.' };
+    if (mare.pensionedFromBreeding) return { ok: false, msg: `${mare.name} is already pensioned.` };
+    mare.pensionedFromBreeding = true;
+    // Cancel any active pregnancy
+    if (mare.breedingStatus === 'pregnant') {
+      mare.breedingStatus   = 'open';
+      mare.sireAtCover      = null;
+      mare.coverWeek        = null;
+      mare.expectedFoalWeek = null;
+    }
+    this.notify(`${mare.name} has been pensioned from the breeding barn.`, 'info');
     return { ok: true };
   }
 
@@ -324,7 +372,7 @@ class GameState {
       if (isAOC) {
         if (!horse.qualifiesAgeAndSex(targetRace.ageDivision, targetRace.sexRestriction))
           return { ok: false, msg: `${horse.name} does not meet the age/sex requirements for this race.` };
-        if (!horse.isN1XEligible && !claimingElection)
+        if (!horse.isProtectedForAOC(targetRace.raceTypeId) && !claimingElection)
           return { ok: false, msg: `${horse.name} must run for the ${formatMoney(targetRace.optionalClaimingPrice)} claiming price to enter this race.` };
       } else {
         if (!horse.qualifiesFor(targetRace.raceTypeId, targetRace.ageDivision, targetRace.sexRestriction))
@@ -397,7 +445,7 @@ class GameState {
     const results      = precomputedResults || simulateRace(horse, targetRace);
     const playerResult = results.find(r => r.isPlayer);
 
-    const earned = horse.applyRaceResult(playerResult.position, targetRace.purse, targetRace.raceTypeId, targetRace.distance, targetRace.surface);
+    const { earned, injuryNotice } = horse.applyRaceResult(playerResult.position, targetRace.purse, targetRace.raceTypeId, targetRace.distance, targetRace.surface);
     horse.raceHistory[0].week = this.currentWeek;
     if (targetRace.isStakes) {
       horse.raceHistory[0].stakesName  = targetRace.name;
@@ -440,6 +488,18 @@ class GameState {
       `${horse.name} finished ${posLabel}${earningStr} in the ${targetRace.name}.`,
       playerResult.position === 1 ? 'success' : 'info'
     );
+
+    if (injuryNotice) {
+      const { severity, label, weeks } = injuryNotice;
+      let msg;
+      if (severity === 'major')
+        msg = `${horse.name} suffered ${label} and will be out ${weeks} weeks.`;
+      else if (severity === 'moderate')
+        msg = `${horse.name} suffered a moderate injury and will be out ${weeks} weeks.`;
+      else
+        msg = `${horse.name} suffered a minor injury and will be out ${weeks} weeks.`;
+      this.notify(msg, severity === 'major' ? 'danger' : 'warning');
+    }
 
     targetRace.playerEntry.ran = true;
     return summary;
@@ -517,12 +577,13 @@ class GameState {
     }
 
     this.horses.forEach(h => {
-      h.advanceWeek(this.currentWeek);
-      if (h.injured) {
-        this.notify(
-          `${h.name} is injured — ${h.injuryWeeksLeft} week${h.injuryWeeksLeft !== 1 ? 's' : ''} remaining.`,
-          'warning'
-        );
+      const { weeklyInjuryNotice } = h.advanceWeek(this.currentWeek);
+      if (weeklyInjuryNotice) {
+        const { severity, weeks } = weeklyInjuryNotice;
+        const msg = severity === 'shin'
+          ? `${h.name} has developed shin soreness and will be out ${weeks} weeks.`
+          : `${h.name} picked up a minor injury during training and will be out ${weeks} weeks.`;
+        this.notify(msg, 'warning');
       }
     });
 
