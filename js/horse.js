@@ -341,7 +341,7 @@ class Horse {
     const displaySpeedTier = Math.random() < 0.75 ? spdTier : wrongOf(spdTier);
     // Potential label is always accurate.
     let   displayPotTier   = potTier;
-    if (TIER_ORDER[displayPotTier] < TIER_ORDER[displaySpeedTier]) displayPotTier = displaySpeedTier;
+    if (TIER_ORDER[displayPotTier] < TIER_ORDER[spdTier]) displayPotTier = spdTier;
 
     return new Horse({
       id: uid(),
@@ -368,15 +368,15 @@ class Horse {
   // Price bands keyed on age-adjusted speed, rounded to nearest $5k
   static _auctionPriceFromAdjSpeed(adj) {
     let min, max;
-    if      (adj >= 30) { min =  200000; max = 3000000; }
-    else if (adj >= 27) { min =  100000; max = 1500000; }
-    else if (adj >= 24) { min =   80000; max =  500000; }
-    else if (adj >= 21) { min =   70000; max =  200000; }
-    else if (adj >= 18) { min =   50000; max =  140000; }
-    else if (adj >= 15) { min =   40000; max =  100000; }
-    else if (adj >= 12) { min =   30000; max =   80000; }
-    else if (adj >=  9) { min =   20000; max =   60000; }
-    else                { min =   20000; max =   40000; }  // ≤ 8
+    if      (adj >= 36) { min =  200000; max = 3000000; }
+    else if (adj >= 33) { min =  200000; max = 1500000; }
+    else if (adj >= 30) { min =  100000; max =  500000; }
+    else if (adj >= 27) { min =   70000; max =  200000; }
+    else if (adj >= 24) { min =   50000; max =  100000; }
+    else if (adj >= 21) { min =   40000; max =   80000; }
+    else if (adj >= 18) { min =   30000; max =   60000; }
+    else if (adj >= 15) { min =   20000; max =   50000; }
+    else                { min =   20000; max =   40000; }  // = 9, 10, 11
     return Math.round(rand(min, max) / 5000) * 5000;
   }
 
@@ -412,10 +412,7 @@ class Horse {
   // ── Auction price ─────────────────────────────────────────────────────────
 
   get auctionPrice() {
-    if (this._auctionPrice !== null) return this._auctionPrice;
-    // Fallback: compute from age-adjusted speed (e.g. for horses without a set price)
-    const adjSpd = this.speed + (this.age === 2 ? 5 : 0);
-    return Horse._auctionPriceFromAdjSpeed(adjSpd);
+    return this._auctionPrice;
   }
 
   // ── Serialization ─────────────────────────────────────────────────────────
